@@ -5,6 +5,7 @@ using EFCoreCosmosSample.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
 
 namespace EFCoreCosmosSample.Infrastructure.Extentions
 {
@@ -16,7 +17,19 @@ namespace EFCoreCosmosSample.Infrastructure.Extentions
 				options.UseCosmos(
 					configuration["Cosmos:AccountEndpoint"],
 					configuration["Cosmos:AccountKey"],
-					configuration["Cosmos:DatabaseName"])
+					configuration["Cosmos:DatabaseName"],
+					cosmosOptions => {
+
+                        cosmosOptions.HttpClientFactory(() =>
+						{
+							HttpMessageHandler httpMessageHandler = new HttpClientHandler()
+							{
+								ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+							};
+							return new HttpClient(httpMessageHandler);
+						});
+						cosmosOptions.ConnectionMode(Microsoft.Azure.Cosmos.ConnectionMode.Gateway);
+					})
 			);
 			services
 				.AddScoped<IFamilyRepository, FamilyRepository>();

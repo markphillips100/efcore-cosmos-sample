@@ -20,24 +20,23 @@ namespace EFCoreCosmosSample.Infrastructure.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Family>()
+            var familyEntity = modelBuilder.Entity<Family>();
+            familyEntity
                 .ToContainer("Families");
 
-            modelBuilder.Entity<Family>()
+            familyEntity.HasPartitionKey(x => x.Id);
+            familyEntity.HasKey(u => u.Id);
+
+            familyEntity
                 .Property(f => f.Id)
                 .HasConversion<string>()
                 .HasValueGenerator<SequentialGuidValueGenerator>();
 
-            modelBuilder.Entity<Family>()
-                .HasPartitionKey(nameof(Family.Id))
-                .OwnsMany(f => f.Parents);
-
-            modelBuilder.Entity<Family>()
+            familyEntity
                 .OwnsMany(f => f.Children)
-                    .OwnsMany(c => c.Pets);
+                .WithOwner()
+                .HasForeignKey(x => x.FamilyId);
 
-            modelBuilder.Entity<Family>()
-                .OwnsOne(f => f.Address);
         }
     }
 }
